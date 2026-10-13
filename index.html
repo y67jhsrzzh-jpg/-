@@ -20,17 +20,17 @@
     .pixel-btn:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0 #000; }
     #webgl-container { position: absolute; inset: 0; }
     #touch-controls { position: absolute; inset: 0; pointer-events: none; z-index: 60; display: none; }
-    #joystick-zone { position: absolute; bottom: 25px; left: 25px; width: 120px; height: 120px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; touch-action: none; }
-    #joystick-knob { position: absolute; top: 37px; left: 37px; width: 46px; height: 46px; background: #f1c40f; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-    .interact-btn { position: absolute; bottom: 30px; right: 25px; width: 75px; height: 75px; background: #e74c3c; border: 4px solid #fff; border-radius: 50%; color: #fff; font-weight: 900; font-size: 1.05rem; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; box-shadow: 0 5px 12px rgba(0,0,0,0.6); }
-    .interact-btn:active { transform: scale(0.92); }
-    #hint-bar { position: absolute; bottom: 165px; width: 100%; text-align: center; color: #f1c40f; font-size: 1.05rem; text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 55; display: none; }
     
-    /* 調整對話層排版，防切底 */
-    #dialogue-layer { position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 660px; display: none; flex-direction: column; gap: 6px; z-index: 70; }
-    .pixel-dialogue-box { background: rgba(10,10,15,0.94); border: 3px solid #f1c40f; padding: 0.6rem 0.9rem; border-radius: 4px; box-shadow: 4px 4px 0 #000; font-size: 0.95rem; line-height: 1.45; color: #fff; min-height: 2.6rem; max-height: 30vh; overflow-y: auto; white-space: pre-line; word-break: break-word; }
-    .pixel-options-grid { display: flex; flex-direction: column; gap: 5px; }
-    .opt-pixel-btn { background: #2c3e50; border: 2px solid #95a5a6; color: #ecf0f1; padding: 7px 11px; font-size: 0.88rem; text-align: left; cursor: pointer; font-family: inherit; box-shadow: 2px 2px 0 #000; border-radius: 3px; }
+    #joystick-zone { position: absolute; bottom: 60px; left: 35px; width: 120px; height: 120px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; touch-action: none; }
+    #joystick-knob { position: absolute; top: 37px; left: 37px; width: 46px; height: 46px; background: #f1c40f; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    .interact-btn { position: absolute; bottom: 60px; right: 35px; width: 75px; height: 75px; background: #e74c3c; border: 4px solid #fff; border-radius: 50%; color: #fff; font-weight: 900; font-size: 1.05rem; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; box-shadow: 0 5px 12px rgba(0,0,0,0.6); }
+    .interact-btn:active { transform: scale(0.92); }
+    #hint-bar { position: absolute; bottom: 195px; width: 100%; text-align: center; color: #f1c40f; font-size: 1.05rem; text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 55; display: none; }
+    
+    #dialogue-layer { position: absolute; bottom: max(55px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 720px; display: none; flex-direction: column; gap: 8px; z-index: 70; }
+    .pixel-dialogue-box { background: rgba(10,10,15,0.94); border: 3px solid #f1c40f; padding: 0.65rem 0.95rem; border-radius: 4px; box-shadow: 3px 3px 0 #000; font-size: 0.95rem; line-height: 1.45; color: #fff; min-height: 2.6rem; max-height: 26vh; overflow-y: auto; white-space: pre-line; word-break: break-word; }
+    .pixel-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .opt-pixel-btn { background: #2c3e50; border: 2px solid #95a5a6; color: #ecf0f1; padding: 10px 10px; font-size: 0.85rem; text-align: left; cursor: pointer; font-family: inherit; box-shadow: 2px 2px 0 #000; border-radius: 3px; line-height: 1.35; word-break: break-all; overflow-wrap: break-word; }
     .opt-pixel-btn:active { background: #e67e22; border-color: #fff; transform: translate(1px, 1px); }
     #awkward-container { width: 100%; background: #1e272e; height: 10px; border: 2px solid #fff; margin-top: 4px; display: none; }
     #awkward-fill { width: 0%; height: 100%; background: #e74c3c; transition: width 0.1s linear; }
@@ -654,10 +654,10 @@
     dLayer.style.display = 'flex';
     dText.innerText = "客人走至吧台：「給我來一杯『海鹽焦糖冷萃生椰阿芙佳朵』。」（你根本不會做）";
     dOpt.innerHTML = `
-      <button class="opt-pixel-btn" onclick="triggerFired('人善被人欺')">A: 老實跟他說你不會做</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('人善被人欺')">A: 老實說不會做</button>
       <button class="opt-pixel-btn" onclick="triggerFired('你是不是有反駁型人格？')">B: 推薦他點其他品項</button>
-      <button class="opt-pixel-btn" onclick="stage2OptionC()">C: 隨便做一杯類似的告訴他這是他點的</button>
-      <button class="opt-pixel-btn" onclick="stage2OptionD()">D: 站在原地盯著客人一言不發</button>
+      <button class="opt-pixel-btn" onclick="stage2OptionC()">C: 隨便做類似的呼嚨過去</button>
+      <button class="opt-pixel-btn" onclick="stage2OptionD()">D: 站在原地盯著他一言不發</button>
     `;
   }
 
@@ -819,10 +819,10 @@
       if (coinCount === 8) {
         document.getElementById('dialogue-text').innerText = "客人慢吞吞數著...（身後排隊人潮已開始發出殺氣）總共 200 元，你要怎麼做？";
         document.getElementById('options-grid').innerHTML = `
-          <button class="opt-pixel-btn" onclick="triggerFired('收到兩百個假硬幣')">A: 繼續等待她掏完200個一塊並收下</button>
+          <button class="opt-pixel-btn" onclick="triggerFired('收到兩百個假硬幣')">A: 等他掏完200個 然後收下</button>
           <button class="opt-pixel-btn" onclick="triggerFired('你直接睡到下班')">B: 原地躺下睡覺</button>
           <button class="opt-pixel-btn" onclick="stage3OptionC()">C: 把他錢包搶過來</button>
-          <button class="opt-pixel-btn" onclick="triggerFired('他用安卓')">D: 請他使用 Apple Pay</button>
+          <button class="opt-pixel-btn" onclick="triggerFired('他用安卓')">D: 請他用Apple pay</button>
         `;
       }
     }, 1000);
@@ -970,9 +970,9 @@
       document.getElementById('dialogue-text').innerText = "兩人在櫃檯面前互毆雜物狂飛！場面極度混亂！你決定：";
       document.getElementById('options-grid').innerHTML = `
         <button class="opt-pixel-btn" onclick="triggerFired('不可以趕客人走')">A: 把他們趕出去</button>
-        <button class="opt-pixel-btn" id="stage4-opt-b" onclick="stage4OptionB()">B: 跟他們說要打去練舞室打</button>
-        <button class="opt-pixel-btn" onclick="triggerFired('上班不能吃東西')">C: 拿出爆米花邊看邊吃</button>
-        <button class="opt-pixel-btn" onclick="triggerFired('騎樓抽煙遇到環保局被開罰3600元')">D: 趁亂跑出去騎樓抽一根菸</button>
+        <button class="opt-pixel-btn" id="stage4-opt-b" onclick="stage4OptionB()">B: 告訴他們要打去練舞室打</button>
+        <button class="opt-pixel-btn" onclick="triggerFired('上班不能吃東西')">C: 拿出爆米花邊吃邊看戲</button>
+        <button class="opt-pixel-btn" onclick="triggerFired('騎樓抽煙遇到環保局被開罰3600元')">D: 趁亂跑去騎樓抽煙</button>
       `;
     }, 4500);
   }
@@ -1082,9 +1082,9 @@
     document.getElementById('dialogue-text').innerText = "10:00 PM 下班，現在已經 9:59 PM！老闆站在吧台前滔滔不絕：「想當年我在東引當兵的時候啊...」";
     document.getElementById('options-grid').innerHTML = `
       <button class="opt-pixel-btn" onclick="triggerFired('老闆：我講話很無聊嗎？')">A: 開始收拾個人物品</button>
-      <button class="opt-pixel-btn" onclick="stage5UrineEscape()">B: 使用尿遁從後門逃走</button>
-      <button class="opt-pixel-btn" onclick="triggerFired('拿成老闆的手機')">C: 拿起手機假裝有電話要接</button>
-      <button class="opt-pixel-btn" onclick="stage5ThunderReply()">D: 給出一個雷霆回覆</button>
+      <button class="opt-pixel-btn" onclick="stage5UrineEscape()">B: 尿遁偷從後門跑走</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('拿成老闆的手機')">C: 假裝手機響了有電話要接</button>
+      <button class="opt-pixel-btn" onclick="stage5ThunderReply()">D: 給出雷霆回覆</button>
     `;
   }
 
