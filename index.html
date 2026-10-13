@@ -394,7 +394,7 @@
     const wallMat = new THREE.MeshLambertMaterial({ color: 0x2d3436 });
     const backWall = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 0.5), wallMat); backWall.position.set(0, 2.5, -10); scene.add(backWall);
     const leftWall = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 0.5), wallMat); leftWall.position.set(-5.5, 2.5, 6); scene.add(leftWall);
-    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 0.5), wallMat); rightWall.position.set(5.5, 2.5, 6); scene.add(rightWall);
+    rightWall = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 0.5), wallMat); rightWall.position.set(5.5, 2.5, 6); scene.add(rightWall);
 
     const glassMat = new THREE.MeshLambertMaterial({ color: 0x74b9ff, transparent: true, opacity: 0.55 });
     leftDoor = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 0.1), glassMat); leftDoor.position.set(-1, 2, 6); scene.add(leftDoor);
@@ -750,7 +750,7 @@
     dText.innerText = "客人走至吧台：「給我來一杯『海鹽焦糖冷萃生椰阿芙佳朵』。」（你根本不會做）";
     dOpt.innerHTML = `
       <button class="opt-pixel-btn" onclick="triggerFired('人善被人欺')">A:老實說不會做</button>
-      <button class="opt-pixel-btn" onclick="triggerFired('你是不是有反駁型人格？')">B:告訴他另一個品項更好喝</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('你是不是有反駁型人格？')">B:告訴他另一款更好喝</button>
       <button class="opt-pixel-btn" onclick="stage2OptionC()">C:隨便做類似的呼嚨過去</button>
       <button class="opt-pixel-btn" onclick="stage2OptionD()">D:站在原地盯著他一言不發</button>
     `;
