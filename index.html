@@ -21,13 +21,13 @@
     #webgl-container { position: absolute; inset: 0; }
     #touch-controls { position: absolute; inset: 0; pointer-events: none; z-index: 60; display: none; }
     
-    #joystick-zone { position: absolute; bottom: 60px; left: 35px; width: 120px; height: 120px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; touch-action: none; }
+    #joystick-zone { position: absolute; bottom: 90px; left: 35px; width: 120px; height: 120px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; touch-action: none; }
     #joystick-knob { position: absolute; top: 37px; left: 37px; width: 46px; height: 46px; background: #f1c40f; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-    .interact-btn { position: absolute; bottom: 60px; right: 35px; width: 75px; height: 75px; background: #e74c3c; border: 4px solid #fff; border-radius: 50%; color: #fff; font-weight: 900; font-size: 1.05rem; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; box-shadow: 0 5px 12px rgba(0,0,0,0.6); }
+    .interact-btn { position: absolute; bottom: 90px; right: 35px; width: 75px; height: 75px; background: #e74c3c; border: 4px solid #fff; border-radius: 50%; color: #fff; font-weight: 900; font-size: 1.05rem; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; box-shadow: 0 5px 12px rgba(0,0,0,0.6); }
     .interact-btn:active { transform: scale(0.92); }
-    #hint-bar { position: absolute; bottom: 195px; width: 100%; text-align: center; color: #f1c40f; font-size: 1.05rem; text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 55; display: none; }
+    #hint-bar { position: absolute; bottom: 235px; width: 100%; text-align: center; color: #f1c40f; font-size: 1.05rem; text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 55; display: none; }
     
-    #dialogue-layer { position: absolute; bottom: max(55px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 720px; display: none; flex-direction: column; gap: 8px; z-index: 70; }
+    #dialogue-layer { position: absolute; bottom: max(110px, calc(env(safe-area-inset-bottom) + 60px)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 720px; display: none; flex-direction: column; gap: 8px; z-index: 70; }
     .pixel-dialogue-box { background: rgba(10,10,15,0.94); border: 3px solid #f1c40f; padding: 0.65rem 0.95rem; border-radius: 4px; box-shadow: 3px 3px 0 #000; font-size: 0.95rem; line-height: 1.45; color: #fff; min-height: 2.6rem; max-height: 26vh; overflow-y: auto; white-space: pre-line; word-break: break-word; }
     .pixel-options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
     .opt-pixel-btn { background: #2c3e50; border: 2px solid #95a5a6; color: #ecf0f1; padding: 10px 10px; font-size: 0.85rem; text-align: left; cursor: pointer; font-family: inherit; box-shadow: 2px 2px 0 #000; border-radius: 3px; line-height: 1.35; word-break: break-all; overflow-wrap: break-word; }
@@ -100,6 +100,102 @@
       osc.stop(audioCtx.currentTime + duration);
     } catch(e) {}
   }
+
+  // 1. 柔和氣泡感音效（供第二關 D 選項使用）
+  function playSoftTick() {
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(260 + Math.random() * 40, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.08);
+    } catch(e) {}
+  }
+
+  // 2. 時鐘快轉滴答聲（供第五關 B 選項尿遁快轉使用）
+  function playClockTick(isTick = true) {
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      // 滴答雙頻率交替 (高音 Tick 1200Hz, 低音 Tack 950Hz)
+      osc.frequency.setValueAtTime(isTick ? 1200 : 950, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.035);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.035);
+    } catch(e) {}
+  }
+
+  // ================= 8-bit 背景音樂引擎 =================
+  let bgmTimer = null;
+  let isBgmPlaying = false;
+  let bgmStep = 0;
+  const bgmNotes = [
+    [523, 0.18], [659, 0.18], [784, 0.18], [1046, 0.22],
+    [880, 0.18], [784, 0.18], [659, 0.22], [587, 0.22],
+    [523, 0.18], [587, 0.18], [659, 0.18], [784, 0.22],
+    [659, 0.18], [587, 0.18], [523, 0.28], [0, 0.12],
+    [440, 0.18], [523, 0.18], [659, 0.18], [880, 0.22],
+    [784, 0.18], [659, 0.18], [587, 0.22], [523, 0.22],
+    [587, 0.18], [659, 0.18], [784, 0.18], [880, 0.22],
+    [784, 0.28], [659, 0.18], [523, 0.35], [0, 0.2]
+  ];
+
+  function startBgm() {
+    initAudioSafe();
+    if (!audioCtx || isBgmPlaying) return;
+    isBgmPlaying = true;
+
+    function playNextNote() {
+      if (!isBgmPlaying || !audioCtx) return;
+      const [freq, dur] = bgmNotes[bgmStep];
+      if (freq > 0) {
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.035, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + dur);
+        } catch(e) {}
+      }
+      bgmStep = (bgmStep + 1) % bgmNotes.length;
+      bgmTimer = setTimeout(playNextNote, dur * 1000 + 40);
+    }
+    playNextNote();
+  }
+
+  function pauseBgm() {
+    isBgmPlaying = false;
+    if (bgmTimer) {
+      clearTimeout(bgmTimer);
+      bgmTimer = null;
+    }
+  }
+
+  window.addEventListener('load', () => {
+    startBgm();
+  });
+  window.addEventListener('pointerdown', function handleFirstInteract() {
+    initAudioSafe();
+    if (!isBgmPlaying) startBgm();
+    window.removeEventListener('pointerdown', handleFirstInteract);
+  }, { once: true });
 
   let scene, camera, renderer;
   let playerMesh, bossMesh, leftDoor, rightDoor;
@@ -573,6 +669,7 @@
 
   function triggerFired(reason) {
     isLevel1Running = false;
+    pauseBgm();
     clearInterval(clockTimer);
     if (currentCoinTimer) clearInterval(currentCoinTimer);
     if (stage4TimeoutId) clearTimeout(stage4TimeoutId);
@@ -597,6 +694,7 @@
 
   function retryCurrentLevel() {
     document.getElementById('fired-screen').style.display = 'none';
+    startBgm();
     if (currentLevel === 1) initLevel1();
     else if (currentLevel === 2) loadStage2();
     else if (currentLevel === 3) loadStage3();
@@ -654,14 +752,15 @@
     dLayer.style.display = 'flex';
     dText.innerText = "客人走至吧台：「給我來一杯『海鹽焦糖冷萃生椰阿芙佳朵』。」（你根本不會做）";
     dOpt.innerHTML = `
-      <button class="opt-pixel-btn" onclick="triggerFired('人善被人欺')">A: 老實說不會做</button>
-      <button class="opt-pixel-btn" onclick="triggerFired('你是不是有反駁型人格？')">B: 推薦他點其他品項</button>
-      <button class="opt-pixel-btn" onclick="stage2OptionC()">C: 隨便做類似的呼嚨過去</button>
-      <button class="opt-pixel-btn" onclick="stage2OptionD()">D: 站在原地盯著他一言不發</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('人善被人欺')">A:老實說不會做</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('你是不是有反駁型人格？')">B:推薦他點其他品項</button>
+      <button class="opt-pixel-btn" onclick="stage2OptionC()">C:隨便做類似的呼嚨過去</button>
+      <button class="opt-pixel-btn" onclick="stage2OptionD()">D:站在原地盯著他一言不發</button>
     `;
   }
 
   function stage2OptionC() {
+    pauseBgm();
     document.getElementById('options-grid').innerHTML = "";
     document.getElementById('dialogue-layer').style.display = 'none';
 
@@ -732,7 +831,8 @@
       currentActiveGuest.rotation.y = Math.PI + Math.sin(elapsed * 3.5) * 0.28;
       sweat.position.x = currentActiveGuest.position.x + 0.35 + Math.sin(elapsed * 3.5) * 0.1;
 
-      playTone(320 + Math.random() * 30, 'triangle', 0.05);
+      // 1. 改用柔和的正弦氣泡水滴音
+      playSoftTick();
 
       if (elapsed >= 8) {
         clearInterval(stareTimer);
@@ -819,10 +919,10 @@
       if (coinCount === 8) {
         document.getElementById('dialogue-text').innerText = "客人慢吞吞數著...（身後排隊人潮已開始發出殺氣）總共 200 元，你要怎麼做？";
         document.getElementById('options-grid').innerHTML = `
-          <button class="opt-pixel-btn" onclick="triggerFired('收到兩百個假硬幣')">A: 等他掏完200個 然後收下</button>
-          <button class="opt-pixel-btn" onclick="triggerFired('你直接睡到下班')">B: 原地躺下睡覺</button>
-          <button class="opt-pixel-btn" onclick="stage3OptionC()">C: 把他錢包搶過來</button>
-          <button class="opt-pixel-btn" onclick="triggerFired('他用安卓')">D: 請他用Apple pay</button>
+          <button class="opt-pixel-btn" onclick="triggerFired('收到兩百個假硬幣')">A:等他掏完200個 然後收下</button>
+          <button class="opt-pixel-btn" onclick="triggerFired('你直接睡到下班')">B:原地躺下睡覺</button>
+          <button class="opt-pixel-btn" onclick="stage3OptionC()">C:把他錢包搶過來</button>
+          <button class="opt-pixel-btn" onclick="triggerFired('他用安卓')">D:請他用Apple pay</button>
         `;
       }
     }, 1000);
@@ -969,16 +1069,17 @@
       if (currentLevel !== 4) return;
       document.getElementById('dialogue-text').innerText = "兩人在櫃檯面前互毆雜物狂飛！場面極度混亂！你決定：";
       document.getElementById('options-grid').innerHTML = `
-        <button class="opt-pixel-btn" onclick="triggerFired('不可以趕客人走')">A: 把他們趕出去</button>
-        <button class="opt-pixel-btn" id="stage4-opt-b" onclick="stage4OptionB()">B: 告訴他們要打去練舞室打</button>
-        <button class="opt-pixel-btn" onclick="triggerFired('上班不能吃東西')">C: 拿出爆米花邊吃邊看戲</button>
-        <button class="opt-pixel-btn" onclick="triggerFired('騎樓抽煙遇到環保局被開罰3600元')">D: 趁亂跑去騎樓抽煙</button>
+        <button class="opt-pixel-btn" onclick="triggerFired('不可以趕客人走')">A:把他們趕出去</button>
+        <button class="opt-pixel-btn" id="stage4-opt-b" onclick="stage4OptionB()">B:告訴他們要打去練舞室打</button>
+        <button class="opt-pixel-btn" onclick="triggerFired('上班不能吃東西')">C:拿出爆米花邊吃邊看戲</button>
+        <button class="opt-pixel-btn" onclick="triggerFired('騎樓抽煙遇到環保局被開罰3600元')">D:趁亂跑去騎樓抽煙</button>
       `;
     }, 4500);
   }
 
   function stage4OptionB() {
     document.getElementById('options-grid').innerHTML = "";
+    pauseBgm();
     isStage4Brawling = false;
 
     setCharacterFace(brawler1, "neutral");
@@ -1026,6 +1127,7 @@
 
               setTimeout(() => {
                 scene.remove(bubble1); scene.remove(bubble2);
+                startBgm();
 
                 let exitStep = 1;
                 let exitTime = 0;
@@ -1081,14 +1183,16 @@
     document.getElementById('dialogue-layer').style.display = 'flex';
     document.getElementById('dialogue-text').innerText = "10:00 PM 下班，現在已經 9:59 PM！老闆站在吧台前滔滔不絕：「想當年我在東引當兵的時候啊...」";
     document.getElementById('options-grid').innerHTML = `
-      <button class="opt-pixel-btn" onclick="triggerFired('老闆：我講話很無聊嗎？')">A: 開始收拾個人物品</button>
-      <button class="opt-pixel-btn" onclick="stage5UrineEscape()">B: 尿遁偷從後門跑走</button>
-      <button class="opt-pixel-btn" onclick="triggerFired('拿成老闆的手機')">C: 假裝手機響了有電話要接</button>
-      <button class="opt-pixel-btn" onclick="stage5ThunderReply()">D: 給出雷霆回覆</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('老闆：我講話很無聊嗎？')">A:開始收拾個人物品</button>
+      <button class="opt-pixel-btn" onclick="stage5UrineEscape()">B:尿遁偷從後門跑走</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('拿成老闆的手機')">C:假裝手機響了有電話要接</button>
+      <button class="opt-pixel-btn" onclick="stage5ThunderReply()">D:給出雷霆回覆</button>
     `;
   }
 
+  // 2. 第五關尿遁 B 選項：音樂立刻停止，時鐘快轉使用滴答聲
   function stage5UrineEscape() {
+    pauseBgm(); // 立即停止音樂
     document.getElementById('dialogue-layer').style.display = 'none';
 
     camera.position.set(-6.5, 2.2, -5.5);
@@ -1102,7 +1206,9 @@
       ticks++;
       fastMin += 25;
       if (fastMin >= 60) { fastMin = 0; fastHour++; }
-      playTone(400 + Math.random() * 300, 'square', 0.04);
+      
+      // 替換為擬真的時鐘快轉滴答聲 (Tick/Tack 交替)
+      playClockTick(ticks % 2 === 0);
       updateClockDisplay(fastHour > 12 ? fastHour - 12 : fastHour, fastMin, fastHour >= 12 ? "PM" : "AM");
 
       if (ticks >= 35) {
@@ -1113,8 +1219,11 @@
     }, 140);
   }
 
+  // 3. 第五關 D 選項：嚴謹的輪替打亂邏輯，防止連續重複抽中同一篇
+  let lastThunderIndex = -1;
   function stage5ThunderReply() {
     document.getElementById('options-grid').innerHTML = "";
+    pauseBgm();
     
     const replies = [
       "我覺得你說的對 但是我要補充一下 首先袋鼠的祖先是一條長頸鹿 而火星表面並沒有任何關於鴨嘴獸生活的痕跡 所以我並不認可湖南人不能吃辣的問題 其次亞特蘭蒂斯是在公元前十年 在賽博坦星球被來自m78星雲來的假面騎士給毀滅的 所以才有了後面著名的通古斯大爆炸 但是答案是紫色的 因為外星人不戴帽子",
@@ -1122,7 +1231,14 @@
       "不要老是和别人比利弊\n比弊时，我们会感到自卑\n比利时，是一个欧洲国家\n当利大于弊时\n多利，是一只克隆羊\n当弊大于利时\n多弊，is free\n利弊相比，必有一多\n可利呢？蹦蹦炸弹\n可弊呢？坠机了"
     ];
 
-    const chosenReply = replies[Math.floor(Math.random() * replies.length)];
+    // 隨機選擇且強制與上一回不同，保證 3 篇隨機輪流出現
+    let nextIdx = Math.floor(Math.random() * replies.length);
+    if (nextIdx === lastThunderIndex) {
+      nextIdx = (nextIdx + 1) % replies.length;
+    }
+    lastThunderIndex = nextIdx;
+
+    const chosenReply = replies[nextIdx];
     const dText = document.getElementById('dialogue-text');
     dText.innerText = "";
 
@@ -1148,6 +1264,7 @@
             document.getElementById('dialogue-layer').style.display = 'none';
             document.getElementById('clock-bar').style.display = 'none';
             document.getElementById('victory-screen').style.display = 'flex';
+            startBgm();
           }, 3200);
         }, 2000);
       }
@@ -1156,6 +1273,7 @@
 
   function startGame() {
     initAudioSafe();
+    startBgm();
     playTone(523, 'triangle', 0.2);
     document.getElementById('start-screen').style.display = 'none';
     currentLevel = 1;
