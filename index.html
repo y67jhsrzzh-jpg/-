@@ -7,97 +7,1162 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap');
-
-    * {
-      box-sizing: border-box; margin: 0; padding: 0;
-      user-select: none; -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-    html, body {
-      width: 100%; height: 100%;
-      background: #000;
-      font-family: 'DotGothic16', 'Press Start 2P', monospace, sans-serif;
-      overflow: hidden;
-      color: #fff;
-    }
-
-    #app {
-      position: relative;
-      width: 100vw; height: 100vh;
-      overflow: hidden;
-    }
-
-    .hud-box {
-      position: absolute;
-      top: 15px;
-      background: rgba(0, 0, 0, 0.85);
-      border: 3px solid #f1c40f;
-      padding: 6px 14px;
-      border-radius: 4px;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 0.9rem;
-      z-index: 50;
-      box-shadow: 4px 4px 0 #000;
-      display: none;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+    html, body { width: 100%; height: 100%; background: #000; font-family: 'DotGothic16', monospace, sans-serif; overflow: hidden; color: #fff; }
+    #app { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+    .hud-box { position: absolute; top: 15px; background: rgba(0,0,0,0.85); border: 3px solid #f1c40f; padding: 6px 14px; border-radius: 4px; font-family: 'Press Start 2P', monospace; font-size: 0.9rem; z-index: 50; box-shadow: 4px 4px 0 #000; display: none; }
     #clock-bar { left: 15px; color: #55efc4; }
     #coin-counter { right: 15px; color: #f1c40f; }
-
-    #start-screen {
-      position: absolute; inset: 0;
-      background: radial-gradient(circle at center, #3d2b1f 0%, #110805 100%);
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: center;
-      z-index: 100; padding: 2rem; text-align: center;
-    }
-    .pixel-title {
-      font-size: 2.2rem;
-      color: #ffeaa7;
-      text-shadow: 4px 4px 0 #c0392b, -2px -2px 0 #000;
-      margin-bottom: 1.2rem;
-      letter-spacing: 2px;
-    }
-    .pixel-sub {
-      color: #b2bec3;
-      font-size: 1rem;
-      margin-bottom: 2.5rem;
-      letter-spacing: 1px;
-    }
-    .pixel-btn {
-      font-family: inherit;
-      background: #f1c40f;
-      color: #000;
-      border: 4px solid #fff;
-      padding: 16px 36px;
-      font-size: 1.2rem;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 6px 6px 0 #000;
-    }
-    .pixel-btn:active {
-      transform: translate(3px, 3px);
-      box-shadow: 3px 3px 0 #000;
-    }
-
+    #start-screen { position: absolute; inset: 0; background: radial-gradient(circle at center, #3d2b1f 0%, #110805 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; padding: 2rem; text-align: center; }
+    .pixel-title { font-size: 2.2rem; color: #ffeaa7; text-shadow: 4px 4px 0 #c0392b, -2px -2px 0 #000; margin-bottom: 1.2rem; letter-spacing: 2px; }
+    .pixel-sub { color: #b2bec3; font-size: 1rem; margin-bottom: 2.5rem; letter-spacing: 1px; }
+    .pixel-btn { font-family: inherit; background: #f1c40f; color: #000; border: 4px solid #fff; padding: 16px 36px; font-size: 1.2rem; font-weight: 900; cursor: pointer; box-shadow: 6px 6px 0 #000; }
+    .pixel-btn:active { transform: translate(3px, 3px); box-shadow: 3px 3px 0 #000; }
     #webgl-container { position: absolute; inset: 0; }
+    #touch-controls { position: absolute; inset: 0; pointer-events: none; z-index: 60; display: none; }
+    #joystick-zone { position: absolute; bottom: 30px; left: 30px; width: 130px; height: 130px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; touch-action: none; }
+    #joystick-knob { position: absolute; top: 40px; left: 40px; width: 50px; height: 50px; background: #f1c40f; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+    .interact-btn { position: absolute; bottom: 35px; right: 30px; width: 80px; height: 80px; background: #e74c3c; border: 4px solid #fff; border-radius: 50%; color: #fff; font-weight: 900; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; box-shadow: 0 6px 15px rgba(0,0,0,0.6); }
+    .interact-btn:active { transform: scale(0.92); }
+    #hint-bar { position: absolute; bottom: 175px; width: 100%; text-align: center; color: #f1c40f; font-size: 1.1rem; text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 55; display: none; }
+    #dialogue-layer { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 680px; display: none; flex-direction: column; gap: 10px; z-index: 70; }
+    .pixel-dialogue-box { background: rgba(10,10,15,0.94); border: 4px solid #f1c40f; padding: 1rem 1.2rem; border-radius: 4px; box-shadow: 6px 6px 0 #000; font-size: 1.05rem; line-height: 1.6; color: #fff; min-height: 4.5rem; max-height: 38vh; overflow-y: auto; white-space: pre-line; word-break: break-word; }
+    .pixel-options-grid { display: flex; flex-direction: column; gap: 8px; }
+    .opt-pixel-btn { background: #2c3e50; border: 3px solid #95a5a6; color: #ecf0f1; padding: 12px 14px; font-size: 0.95rem; text-align: left; cursor: pointer; font-family: inherit; box-shadow: 3px 3px 0 #000; }
+    .opt-pixel-btn:active { background: #e67e22; border-color: #fff; transform: translate(2px, 2px); }
+    #awkward-container { width: 100%; background: #1e272e; height: 14px; border: 2px solid #fff; margin-top: 10px; display: none; }
+    #awkward-fill { width: 0%; height: 100%; background: #e74c3c; transition: width 0.1s linear; }
+    #fade-overlay { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.6s ease; z-index: 90; }
+    #fired-screen { position: absolute; inset: 0; background: rgba(15,5,5,0.96); display: none; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; z-index: 200; text-align: center; }
+    #fired-title { font-size: clamp(1.4rem, 4.5vw, 2.6rem); font-weight: 900; color: #ff3838; letter-spacing: 2px; text-shadow: 4px 4px 0 #000; max-width: 95vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #retry-btn { display: none; margin-top: 2rem; }
+    #victory-screen { position: absolute; inset: 0; background: rgba(10,25,15,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; z-index: 200; text-align: center; }
+  </style>
+</head>
+<body>
 
-    #touch-controls {
-      position: absolute; inset: 0;
-      pointer-events: none;
-      z-index: 60;
-      display: none;
+<div id="app">
+  <div class="hud-box" id="clock-bar">07:58 AM</div>
+  <div class="hud-box" id="coin-counter">0/200 元</div>
+  <div id="hint-bar"></div>
+  <div id="fade-overlay"></div>
+  <div id="start-screen">
+    <div class="pixel-title">☕ 打工人極限生存日記</div>
+    <div class="pixel-sub">社畜的每一步都在被開除邊緣試探</div>
+    <button class="pixel-btn" id="start-btn" onclick="startGame()">進入遊戲</button>
+  </div>
+  <div id="webgl-container"></div>
+  <div id="touch-controls">
+    <div id="joystick-zone"><div id="joystick-knob"></div></div>
+    <div class="interact-btn" id="btn-action">選擇</div>
+  </div>
+  <div id="dialogue-layer">
+    <div class="pixel-dialogue-box" id="dialogue-text">...</div>
+    <div id="awkward-container"><div id="awkward-fill"></div></div>
+    <div class="pixel-options-grid" id="options-grid"></div>
+  </div>
+  <div id="fired-screen">
+    <div id="fired-title">你被炒了</div>
+    <button class="pixel-btn" id="retry-btn" onclick="retryCurrentLevel()">🔄 重來</button>
+  </div>
+  <div id="victory-screen">
+    <div class="pixel-title" style="color: #55efc4; text-shadow: 4px 4px 0 #000;">🎉 順利下班！</div>
+    <p style="color: #f1f2f6; line-height: 2; margin-bottom: 2rem; font-size: 1.1rem;">
+      你在老闆、奧客與練舞室打架的夾擊下奇蹟存活！<br>
+      解鎖成就：<strong>【特級裝瘋賣傻摸魚仙人】</strong>
+    </p>
+    <button class="pixel-btn" onclick="location.reload()">重新遊玩</button>
+  </div>
+</div>
+
+<script>
+  let audioCtx = null;
+  function initAudioSafe() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch(e) {}
+  }
+  function playTone(freq = 440, type = 'sine', duration = 0.15) {
+    if (!audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  let scene, camera, renderer;
+  let playerMesh, bossMesh, leftDoor, rightDoor;
+  let barCounter, clockDeviceMesh, punchMachineSprite, bossLabelSprite, toiletDoorMesh;
+  let dynamicActors = [];
+  let spawnedCoins = [];
+  let currentLevel = 1;
+  let isLevel1Running = false;
+  let doorOpen = false;
+  let greetedBoss = false;
+  let isGreetingAnimating = false;
+  let gameTimeSeconds = 0;
+  let clockTimer = null;
+  let moveInput = { x: 0, z: 0 };
+  let currentActiveGuest = null;
+  let currentCoinTimer = null;
+  let stage4TimeoutId = null;
+
+  function createFaceTexture(expression = "neutral", hasMustache = false) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#dca878';
+    ctx.fillRect(0, 0, 128, 128);
+
+    ctx.fillStyle = '#111';
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 6;
+
+    if (expression === "neutral") {
+      ctx.beginPath();
+      ctx.moveTo(24, 34); ctx.lineTo(54, 34);
+      ctx.moveTo(104, 34); ctx.lineTo(74, 34);
+      ctx.stroke();
+
+      ctx.fillRect(32, 54, 12, 14);
+      ctx.fillRect(84, 54, 12, 14);
+
+      if (hasMustache) {
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.moveTo(64, 82);
+        ctx.quadraticCurveTo(46, 78, 28, 92);
+        ctx.quadraticCurveTo(46, 88, 64, 86);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(64, 82);
+        ctx.quadraticCurveTo(82, 78, 100, 92);
+        ctx.quadraticCurveTo(82, 88, 64, 86);
+        ctx.fill();
+      } else {
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(46, 94); ctx.lineTo(82, 94);
+        ctx.stroke();
+      }
+    } else if (expression === "worried") {
+      ctx.beginPath();
+      ctx.moveTo(22, 44); ctx.lineTo(54, 30);
+      ctx.moveTo(106, 44); ctx.lineTo(74, 30);
+      ctx.stroke();
+
+      ctx.fillRect(32, 54, 12, 14);
+      ctx.fillRect(84, 54, 12, 14);
+
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(48, 96); ctx.lineTo(64, 92); ctx.lineTo(80, 96);
+      ctx.stroke();
+    } else if (expression === "sad") {
+      ctx.beginPath();
+      ctx.moveTo(24, 46); ctx.lineTo(54, 32);
+      ctx.moveTo(104, 46); ctx.lineTo(74, 32);
+      ctx.stroke();
+
+      ctx.fillRect(32, 56, 12, 14);
+      ctx.fillRect(84, 56, 12, 14);
+
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(64, 102, 16, 0, Math.PI, true);
+      ctx.stroke();
+    } else if (expression === "angry") {
+      ctx.beginPath();
+      ctx.moveTo(22, 28); ctx.lineTo(54, 44);
+      ctx.moveTo(106, 28); ctx.lineTo(74, 44);
+      ctx.stroke();
+
+      ctx.fillRect(32, 58, 12, 14);
+      ctx.fillRect(84, 58, 12, 14);
+
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(64, 102, 16, Math.PI, Math.PI * 2);
+      ctx.stroke();
     }
-    #joystick-zone {
-      position: absolute; bottom: 30px; left: 30px;
-      width: 130px; height: 130px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 3px solid rgba(255, 255, 255, 0.4);
-      border-radius: 50%;
-      pointer-events: auto;
-      touch-action: none;
+    return new THREE.CanvasTexture(canvas);
+  }
+
+  function makeTextSprite(message, color = "#f1c40f", isBubble = false, fontSize = 28) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 110;
+    const ctx = canvas.getContext('2d');
+    if (isBubble) {
+      ctx.fillStyle = "rgba(0,0,0,0.92)";
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(10, 10, 492, 90);
+      ctx.fillRect(10, 10, 492, 90);
     }
-    #joystick-knob {
-      position: absolute; top: 40px; left: 40px;
-      width: 50px; height: 50px;
-      background: #f1c40f;
-      border:
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(message, 256, 55);
+    const texture = new THREE.CanvasTexture(canvas);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthTest: false }));
+    sprite.scale.set(4.0, 0.9, 1);
+    return sprite;
+  }
+
+  function createCharacter(type = "player") {
+    const group = new THREE.Group();
+    const bodyGeo = new THREE.BoxGeometry(0.85, 1.1, 0.45);
+    const bodyMat = new THREE.MeshLambertMaterial({
+      color: type === "boss" ? 0x2c3e50 : (type === "brawler" ? 0x95a5a6 : 0xd35400)
+    });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 1.35;
+    group.add(body);
+
+    const headGeo = new THREE.BoxGeometry(0.55, 0.55, 0.55);
+    const skinMat = new THREE.MeshLambertMaterial({ color: 0xdca878 });
+    const faceMat = new THREE.MeshLambertMaterial({
+      map: createFaceTexture("neutral", type === "boss")
+    });
+    const head = new THREE.Mesh(headGeo, [skinMat, skinMat, skinMat, skinMat, faceMat, skinMat]);
+    head.position.y = 2.18;
+    group.add(head);
+
+    if (type === "player") {
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 0.7), new THREE.MeshLambertMaterial({ color: 0x2c3e50 }));
+      cap.position.set(0, 2.48, 0.05);
+      group.add(cap);
+    } else if (type === "boss") {
+      const tie = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.65, 0.06), new THREE.MeshLambertMaterial({ color: 0xc0392b }));
+      tie.position.set(0, 1.35, 0.25);
+      group.add(tie);
+    }
+
+    const armGeo = new THREE.BoxGeometry(0.24, 0.9, 0.24);
+    const leftArm = new THREE.Mesh(armGeo, skinMat); leftArm.position.set(-0.55, 1.35, 0); group.add(leftArm);
+    const rightArm = new THREE.Mesh(armGeo, skinMat); rightArm.position.set(0.55, 1.35, 0); group.add(rightArm);
+
+    const legGeo = new THREE.BoxGeometry(0.32, 0.85, 0.32);
+    const pantsMat = new THREE.MeshLambertMaterial({ color: type === "boss" ? 0x1a252f : 0x2c3e50 });
+    const leftLeg = new THREE.Mesh(legGeo, pantsMat); leftLeg.position.set(-0.24, 0.45, 0); group.add(leftLeg);
+    const rightLeg = new THREE.Mesh(legGeo, pantsMat); rightLeg.position.set(0.24, 0.45, 0); group.add(rightLeg);
+
+    group.userData = { leftLeg, rightLeg, leftArm, rightArm, head, animTime: 0, isBoss: (type === "boss") };
+    return group;
+  }
+
+  function setCharacterFace(character, expression = "neutral") {
+    if (character && character.userData && character.userData.head) {
+      const hasMustache = !!character.userData.isBoss;
+      character.userData.head.material[4].map = createFaceTexture(expression, hasMustache);
+      character.userData.head.material[4].needsUpdate = true;
+    }
+  }
+
+  function initThreeScene() {
+    const container = document.getElementById('webgl-container');
+    container.innerHTML = '';
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111217);
+    scene.fog = new THREE.Fog(0x111217, 16, 45);
+
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+    const dirLight = new THREE.DirectionalLight(0xfff3e0, 0.9);
+    dirLight.position.set(6, 14, 6);
+    scene.add(dirLight);
+
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 28), new THREE.MeshLambertMaterial({ color: 0x3e271d }));
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    const street = new THREE.Mesh(new THREE.PlaneGeometry(18, 8), new THREE.MeshLambertMaterial({ color: 0x212121 }));
+    street.rotation.x = -Math.PI / 2;
+    street.position.set(0, 0.01, 10);
+    scene.add(street);
+
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0x2d3436 });
+    const backWall = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 0.5), wallMat); backWall.position.set(0, 2.5, -10); scene.add(backWall);
+    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 0.5), wallMat); leftWall.position.set(-5.5, 2.5, 6); scene.add(leftWall);
+    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 0.5), wallMat); rightWall.position.set(5.5, 2.5, 6); scene.add(rightWall);
+
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0x74b9ff, transparent: true, opacity: 0.55 });
+    leftDoor = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 0.1), glassMat); leftDoor.position.set(-1, 2, 6); scene.add(leftDoor);
+    rightDoor = new THREE.Mesh(new THREE.BoxGeometry(2, 4, 0.1), glassMat); rightDoor.position.set(1, 2, 6); scene.add(rightDoor);
+
+    barCounter = new THREE.Mesh(new THREE.BoxGeometry(5.5, 1.4, 2.2), new THREE.MeshLambertMaterial({ color: 0x5d4037 }));
+    barCounter.position.set(-4, 0.7, -3.5);
+    scene.add(barCounter);
+
+    clockDeviceMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.6, 0.4), new THREE.MeshLambertMaterial({ color: 0xf1c40f }));
+    clockDeviceMesh.position.set(-4, 1.7, -3.5);
+    scene.add(clockDeviceMesh);
+
+    punchMachineSprite = makeTextSprite("📋 打卡機", "#ffeaa7", false, 28);
+    punchMachineSprite.position.set(-4, 2.6, -3.5);
+    scene.add(punchMachineSprite);
+
+    toiletDoorMesh = new THREE.Mesh(new THREE.BoxGeometry(2.2, 4.2, 0.2), new THREE.MeshLambertMaterial({ color: 0x7f8c8d }));
+    toiletDoorMesh.position.set(-6.5, 2.1, -9.8);
+    const toiletSign = makeTextSprite("🚻 廁所", "#3498db", false, 28);
+    toiletSign.position.set(-6.5, 3.8, -9.6);
+    scene.add(toiletDoorMesh);
+    scene.add(toiletSign);
+
+    playerMesh = createCharacter("player");
+    playerMesh.position.set(0, 0, 10);
+    scene.add(playerMesh);
+
+    bossMesh = createCharacter("boss");
+    bossMesh.position.set(3.8, 0, -3.5);
+    bossMesh.rotation.y = -Math.PI / 4;
+    scene.add(bossMesh);
+
+    bossLabelSprite = makeTextSprite("👔 老闆", "#ff7675", false, 28);
+    bossLabelSprite.position.set(3.8, 3.2, -3.5);
+    scene.add(bossLabelSprite);
+  }
+
+  function initLevel1() {
+    initThreeScene();
+    doorOpen = false;
+    greetedBoss = false;
+    isGreetingAnimating = false;
+    gameTimeSeconds = 0;
+    updateClockDisplay(7, 58);
+
+    if (clockDeviceMesh) clockDeviceMesh.visible = true;
+    if (punchMachineSprite) punchMachineSprite.visible = true;
+
+    document.getElementById('fade-overlay').style.opacity = '0';
+    document.getElementById('clock-bar').style.display = 'block';
+    document.getElementById('coin-counter').style.display = 'none';
+    document.getElementById('touch-controls').style.display = 'block';
+    document.getElementById('hint-bar').style.display = 'block';
+    document.getElementById('dialogue-layer').style.display = 'none';
+    document.getElementById('hint-bar').innerText = '走到門口按右下角「選擇」開門';
+
+    if (clockTimer) clearInterval(clockTimer);
+    clockTimer = setInterval(() => {
+      gameTimeSeconds++;
+      if (gameTimeSeconds >= 20) {
+        updateClockDisplay(8, 0);
+        triggerFired("沒有時間觀念");
+        clearInterval(clockTimer);
+      } else if (gameTimeSeconds >= 10) {
+        updateClockDisplay(7, 59);
+      }
+    }, 1000);
+
+    isLevel1Running = true;
+    requestAnimationFrame(renderMainLoop);
+  }
+
+  function updateClockDisplay(h, m, ampm = "AM") {
+    document.getElementById('clock-bar').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  const joyZone = document.getElementById('joystick-zone');
+  const joyKnob = document.getElementById('joystick-knob');
+  let joyTouchId = null;
+  const joyRadius = 40;
+
+  function handleJoyStart(e) {
+    const touch = e.changedTouches ? e.changedTouches[0] : e;
+    joyTouchId = touch.identifier !== undefined ? touch.identifier : 'mouse';
+    updateJoystick(touch.clientX, touch.clientY);
+  }
+  function handleJoyMove(e) {
+    if (joyTouchId === null) return;
+    let touch = null;
+    if (e.changedTouches) {
+      for (let t of e.changedTouches) { if (t.identifier === joyTouchId) { touch = t; break; } }
+    } else { touch = e; }
+    if (touch) updateJoystick(touch.clientX, touch.clientY);
+  }
+  function handleJoyEnd() {
+    joyTouchId = null;
+    joyKnob.style.transform = `translate(0px, 0px)`;
+    moveInput.x = 0; moveInput.z = 0;
+  }
+  function updateJoystick(clientX, clientY) {
+    const rect = joyZone.getBoundingClientRect();
+    let dx = clientX - (rect.left + rect.width / 2);
+    let dy = clientY - (rect.top + rect.height / 2);
+    const dist = Math.hypot(dx, dy);
+    if (dist > joyRadius) { dx = (dx / dist) * joyRadius; dy = (dy / dist) * joyRadius; }
+    joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+    moveInput.x = dx / joyRadius;
+    moveInput.z = dy / joyRadius;
+  }
+
+  joyZone.addEventListener('touchstart', handleJoyStart, { passive: false });
+  window.addEventListener('touchmove', handleJoyMove, { passive: false });
+  window.addEventListener('touchend', handleJoyEnd, { passive: false });
+
+  const keys = { w: false, s: false, a: false, d: false };
+  window.addEventListener('keydown', e => {
+    if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
+    if (e.key === 's' || e.key === 'ArrowDown') keys.s = true;
+    if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = true;
+    if (e.key === 'd' || e.key === 'ArrowRight') keys.d = true;
+    if (e.key === ' ' || e.key === 'e') handleActionClick();
+  });
+  window.addEventListener('keyup', e => {
+    if (e.key === 'w' || e.key === 'ArrowUp') keys.w = false;
+    if (e.key === 's' || e.key === 'ArrowDown') keys.s = false;
+    if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = false;
+    if (e.key === 'd' || e.key === 'ArrowRight') keys.d = false;
+  });
+
+  const btnAction = document.getElementById('btn-action');
+  btnAction.addEventListener('touchstart', (e) => { e.preventDefault(); handleActionClick(); }, { passive: false });
+  btnAction.addEventListener('click', handleActionClick);
+
+  function handleActionClick() {
+    if (!isLevel1Running || isGreetingAnimating) return;
+    initAudioSafe();
+
+    if (!doorOpen && Math.abs(playerMesh.position.z - 6) < 1.8 && Math.abs(playerMesh.position.x) < 2.2) {
+      doorOpen = true;
+      playTone(580, 'square', 0.15);
+      leftDoor.position.x = -2.8;
+      rightDoor.position.x = 2.8;
+      document.getElementById('hint-bar').innerText = '👉 走進吧台打卡上班';
+      return;
+    }
+
+    if (doorOpen) {
+      const distToBoss = Math.hypot(playerMesh.position.x - 3.8, playerMesh.position.z - (-3.5));
+      if (!greetedBoss && distToBoss < 2.5) {
+        isGreetingAnimating = true;
+        const dLayer = document.getElementById('dialogue-layer');
+        const dText = document.getElementById('dialogue-text');
+        document.getElementById('options-grid').innerHTML = '';
+        dLayer.style.display = 'flex';
+
+        const greetingStr = "老闆！早安！今天請多多指教！";
+        dText.innerText = "";
+        let gIdx = 0;
+        const typeTimer = setInterval(() => {
+          dText.innerText += greetingStr[gIdx];
+          gIdx++;
+          playTone(660, 'sine', 0.03);
+          if (gIdx >= greetingStr.length) {
+            clearInterval(typeTimer);
+            setTimeout(() => {
+              greetedBoss = true;
+              isGreetingAnimating = false;
+              const bubble = makeTextSprite("嗯。", "#fff", true, 26);
+              bubble.position.set(bossMesh.position.x, bossMesh.position.y + 3.2, bossMesh.position.z);
+              scene.add(bubble);
+              playTone(440, 'triangle', 0.2);
+              setTimeout(() => {
+                scene.remove(bubble);
+                dLayer.style.display = 'none';
+                document.getElementById('hint-bar').innerText = '👉 走進吧台打卡上班';
+              }, 1600);
+            }, 2000);
+          }
+        }, 50);
+        return;
+      }
+
+      const distToBar = Math.hypot(playerMesh.position.x - (-4), playerMesh.position.z - (-3.5));
+      if (distToBar < 3.2) {
+        if (!greetedBoss) {
+          triggerFired("沒禮貌");
+        } else {
+          isLevel1Running = false;
+          clearInterval(clockTimer);
+          playTone(1000, 'triangle', 0.3);
+          const fade = document.getElementById('fade-overlay');
+          fade.style.opacity = '1';
+          setTimeout(() => {
+            switchToFirstPersonStage2();
+            fade.style.opacity = '0';
+          }, 600);
+        }
+      }
+    }
+  }
+
+  function renderMainLoop() {
+    if (isLevel1Running && !isGreetingAnimating) {
+      let inX = moveInput.x, inZ = moveInput.z;
+      if (keys.a) inX = -1; if (keys.d) inX = 1;
+      if (keys.w) inZ = -1; if (keys.s) inZ = 1;
+
+      const spd = 0.075;
+      if (Math.hypot(inX, inZ) > 0.1) {
+        const nextX = playerMesh.position.x + inX * spd;
+        const nextZ = playerMesh.position.z + inZ * spd;
+        const collidesWithBar = (nextX > -7.2 && nextX < -1.0 && nextZ > -5.0 && nextZ < -2.0);
+        const collidesWithBoss = Math.hypot(nextX - 3.8, nextZ - (-3.5)) < 1.35;
+
+        if (!collidesWithBar && !collidesWithBoss) {
+          playerMesh.position.x = nextX;
+          playerMesh.position.z = nextZ;
+        }
+        playerMesh.rotation.y = Math.atan2(inX, inZ);
+        playerMesh.userData.animTime += 0.2;
+        playerMesh.userData.leftLeg.rotation.x = Math.sin(playerMesh.userData.animTime) * 0.6;
+        playerMesh.userData.rightLeg.rotation.x = -Math.sin(playerMesh.userData.animTime) * 0.6;
+      } else {
+        playerMesh.userData.leftLeg.rotation.x = 0;
+        playerMesh.userData.rightLeg.rotation.x = 0;
+      }
+
+      playerMesh.position.x = Math.max(-7.2, Math.min(7.2, playerMesh.position.x));
+      playerMesh.position.z = !doorOpen ? Math.max(6.2, Math.min(12, playerMesh.position.z)) : Math.max(-8.5, Math.min(12, playerMesh.position.z));
+      camera.position.x = playerMesh.position.x * 0.65;
+      camera.position.y = playerMesh.position.y + 5.5;
+      camera.position.z = playerMesh.position.z + 7.5;
+      camera.lookAt(playerMesh.position.x, playerMesh.position.y + 1.2, playerMesh.position.z);
+    }
+
+    dynamicActors.forEach(act => { if (act.update) act.update(); });
+    if (renderer && scene && camera) renderer.render(scene, camera);
+    requestAnimationFrame(renderMainLoop);
+  }
+
+  function clearDynamicActors() {
+    dynamicActors.forEach(a => {
+      if (a.mesh) scene.remove(a.mesh);
+    });
+    dynamicActors = [];
+    spawnedCoins.forEach(c => scene.remove(c));
+    spawnedCoins = [];
+    if (currentCoinTimer) clearInterval(currentCoinTimer);
+    if (stage4TimeoutId) clearTimeout(stage4TimeoutId);
+  }
+
+  function setFirstPersonCamera() {
+    isLevel1Running = false;
+    document.getElementById('touch-controls').style.display = 'none';
+    document.getElementById('hint-bar').style.display = 'none';
+    document.getElementById('clock-bar').style.display = 'none';
+
+    if (clockDeviceMesh) clockDeviceMesh.visible = false;
+    if (punchMachineSprite) punchMachineSprite.visible = false;
+
+    playerMesh.position.set(-4, -10, -3.5);
+
+    camera.fov = 85;
+    camera.updateProjectionMatrix();
+    camera.position.set(-4.0, 1.95, -4.2);
+    camera.lookAt(-4.0, 1.35, 1.5);
+  }
+
+  function triggerFired(reason) {
+    isLevel1Running = false;
+    clearInterval(clockTimer);
+    if (currentCoinTimer) clearInterval(currentCoinTimer);
+    if (stage4TimeoutId) clearTimeout(stage4TimeoutId);
+    const firedScreen = document.getElementById('fired-screen');
+    const firedTitle = document.getElementById('fired-title');
+    const retryBtn = document.getElementById('retry-btn');
+    document.getElementById('dialogue-layer').style.display = 'none';
+
+    firedTitle.innerText = "你被炒了";
+    firedTitle.style.color = "#ff3838";
+    retryBtn.style.display = 'none';
+    firedScreen.style.display = 'flex';
+    playTone(180, 'sawtooth', 0.4);
+
+    setTimeout(() => {
+      firedTitle.innerText = (reason.startsWith("老闆：") || reason.startsWith("你是不是")) ? reason : `死因：${reason}`;
+      firedTitle.style.color = "#f1c40f";
+      retryBtn.style.display = 'inline-block';
+      playTone(320, 'square', 0.2);
+    }, 2000);
+  }
+
+  function retryCurrentLevel() {
+    document.getElementById('fired-screen').style.display = 'none';
+    if (currentLevel === 1) initLevel1();
+    else if (currentLevel === 2) loadStage2();
+    else if (currentLevel === 3) loadStage3();
+    else if (currentLevel === 4) loadStage4();
+    else if (currentLevel === 5) loadStage5();
+  }
+
+  function switchToFirstPersonStage2() {
+    currentLevel = 2;
+    loadStage2();
+  }
+
+  function loadStage2() {
+    setFirstPersonCamera();
+    clearDynamicActors();
+    leftDoor.position.x = -2.8; rightDoor.position.x = 2.8;
+
+    const guest = createCharacter("brawler");
+    setCharacterFace(guest, "neutral");
+    guest.position.set(-4.0, 0, 5.5);
+    guest.rotation.y = Math.PI;
+    scene.add(guest);
+    currentActiveGuest = guest;
+
+    let arrived = false;
+    let animTime = 0;
+    dynamicActors.push({
+      mesh: guest,
+      update: () => {
+        if (!arrived) {
+          guest.position.z -= 0.055;
+          animTime += 0.25;
+          guest.userData.leftLeg.rotation.x = Math.sin(animTime) * 0.7;
+          guest.userData.rightLeg.rotation.x = -Math.sin(animTime) * 0.7;
+          guest.userData.leftArm.rotation.x = -Math.sin(animTime) * 0.7;
+          guest.userData.rightArm.rotation.x = Math.sin(animTime) * 0.7;
+          if (guest.position.z <= -2.0) {
+            arrived = true;
+            guest.userData.leftLeg.rotation.x = 0;
+            guest.userData.rightLeg.rotation.x = 0;
+            guest.userData.leftArm.rotation.x = 0;
+            guest.userData.rightArm.rotation.x = 0;
+            showStage2Dialogue();
+          }
+        }
+      }
+    });
+  }
+
+  function showStage2Dialogue() {
+    const dLayer = document.getElementById('dialogue-layer');
+    const dText = document.getElementById('dialogue-text');
+    const dOpt = document.getElementById('options-grid');
+    document.getElementById('awkward-container').style.display = 'none';
+    dLayer.style.display = 'flex';
+    dText.innerText = "客人走至吧台：「給我來一杯『海鹽焦糖冷萃生椰阿芙佳朵』。」（你根本不會做）";
+    dOpt.innerHTML = `
+      <button class="opt-pixel-btn" onclick="triggerFired('人善被人欺')">A: 老實跟他說你不會做</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('你是不是有反駁型人格？')">B: 推薦他點其他品項</button>
+      <button class="opt-pixel-btn" onclick="stage2OptionC()">C: 隨便做一杯類似的告訴他這是他點的</button>
+      <button class="opt-pixel-btn" onclick="stage2OptionD()">D: 站在原地盯著客人一言不發</button>
+    `;
+  }
+
+  function stage2OptionC() {
+    document.getElementById('options-grid').innerHTML = "";
+    document.getElementById('dialogue-layer').style.display = 'none';
+
+    const handArm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 1.2), new THREE.MeshLambertMaterial({ color: 0xdca878 }));
+    handArm.position.set(-3.7, 1.5, -4.0);
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.12, 0.38, 16), new THREE.MeshLambertMaterial({ color: 0x22110c }));
+    cup.position.set(-3.7, 1.6, -3.4);
+    scene.add(handArm);
+    scene.add(cup);
+
+    let t = 0;
+    const deliverTimer = setInterval(() => {
+      t += 0.05;
+      handArm.position.z += 0.02;
+      cup.position.z += 0.02;
+      if (t >= 0.5) {
+        clearInterval(deliverTimer);
+
+        scene.remove(handArm);
+        scene.remove(cup);
+
+        setCharacterFace(currentActiveGuest, "neutral");
+
+        setTimeout(() => {
+          setCharacterFace(currentActiveGuest, "angry");
+          playTone(240, 'sine', 0.2);
+
+          const bubble = makeTextSprite("你是不是把我當白癡？", "#ff4d4d", true, 26);
+          bubble.position.set(currentActiveGuest.position.x, currentActiveGuest.position.y + 3.1, currentActiveGuest.position.z);
+          scene.add(bubble);
+          dynamicActors.push({ mesh: bubble });
+
+          setTimeout(() => { triggerFired("騙人"); }, 2000);
+        }, 1000);
+      }
+    }, 30);
+  }
+
+  function stage2OptionD() {
+    document.getElementById('options-grid').innerHTML = "";
+    document.getElementById('dialogue-text').innerText = "（你站在原地，一言不發死死盯著客人...）";
+    const awk = document.getElementById('awkward-container');
+    const awkFill = document.getElementById('awkward-fill');
+    awk.style.display = 'block';
+
+    setCharacterFace(currentActiveGuest, "worried");
+
+    const canvasDrop = document.createElement('canvas');
+    canvasDrop.width = 64; canvasDrop.height = 64;
+    const cDrop = canvasDrop.getContext('2d');
+    cDrop.fillStyle = "#00d2d3";
+    cDrop.beginPath();
+    cDrop.arc(32, 40, 18, 0, Math.PI);
+    cDrop.lineTo(32, 8);
+    cDrop.closePath();
+    cDrop.fill();
+    const sweatTex = new THREE.CanvasTexture(canvasDrop);
+    const sweat = new THREE.Sprite(new THREE.SpriteMaterial({ map: sweatTex, depthTest: false }));
+    sweat.scale.set(0.65, 0.65, 1);
+    sweat.position.set(currentActiveGuest.position.x + 0.35, currentActiveGuest.position.y + 2.7, currentActiveGuest.position.z);
+    scene.add(sweat);
+
+    let elapsed = 0;
+    const stareTimer = setInterval(() => {
+      elapsed += 0.5;
+      awkFill.style.width = `${(elapsed / 8) * 100}%`;
+
+      currentActiveGuest.rotation.y = Math.PI + Math.sin(elapsed * 3.5) * 0.28;
+      sweat.position.x = currentActiveGuest.position.x + 0.35 + Math.sin(elapsed * 3.5) * 0.1;
+
+      playTone(320 + Math.random() * 30, 'triangle', 0.05);
+
+      if (elapsed >= 8) {
+        clearInterval(stareTimer);
+        awk.style.display = 'none';
+        scene.remove(sweat);
+
+        currentActiveGuest.rotation.y = Math.PI;
+        setCharacterFace(currentActiveGuest, "neutral");
+
+        const bubble = makeTextSprite("我改冰濃縮好了", "#55efc4", true, 26);
+        bubble.position.set(currentActiveGuest.position.x, currentActiveGuest.position.y + 3.1, currentActiveGuest.position.z);
+        scene.add(bubble);
+        playTone(880, 'sine', 0.3);
+
+        setTimeout(() => {
+          scene.remove(bubble);
+          let exitStep = 1;
+          let walkTime = 0;
+          const exitTimer = setInterval(() => {
+            walkTime += 0.2;
+            currentActiveGuest.userData.leftLeg.rotation.x = Math.sin(walkTime * 2) * 0.6;
+            currentActiveGuest.userData.rightLeg.rotation.x = -Math.sin(walkTime * 2) * 0.6;
+
+            if (exitStep === 1) {
+              currentActiveGuest.position.x += 0.08;
+              currentActiveGuest.rotation.y = Math.PI / 2;
+              if (currentActiveGuest.position.x >= 0) {
+                currentActiveGuest.position.x = 0;
+                currentActiveGuest.rotation.y = 0;
+                exitStep = 2;
+              }
+            } else if (exitStep === 2) {
+              currentActiveGuest.position.z += 0.1;
+              if (currentActiveGuest.position.z >= 7.5) {
+                clearInterval(exitTimer);
+                scene.remove(currentActiveGuest);
+                currentLevel = 3;
+                loadStage3();
+              }
+            }
+          }, 40);
+        }, 1800);
+      }
+    }, 500);
+  }
+
+  function loadStage3() {
+    setFirstPersonCamera();
+    clearDynamicActors();
+    const dLayer = document.getElementById('dialogue-layer');
+    const coinHUD = document.getElementById('coin-counter');
+    coinHUD.style.display = 'block';
+    coinHUD.innerText = '0/200 元';
+    dLayer.style.display = 'flex';
+    document.getElementById('options-grid').innerHTML = "";
+    document.getElementById('dialogue-text').innerText = "新客人走至吧台結帳 開始以龜速掏出他的零錢";
+
+    const newGuest = createCharacter("player");
+    setCharacterFace(newGuest, "neutral");
+    newGuest.position.set(-4.0, 0, -2.0);
+    newGuest.rotation.y = Math.PI;
+    scene.add(newGuest);
+    dynamicActors.push({ mesh: newGuest });
+    currentActiveGuest = newGuest;
+
+    let coinCount = 0;
+    currentCoinTimer = setInterval(() => {
+      coinCount++;
+      playTone(950, 'square', 0.06);
+      coinHUD.innerText = `${coinCount}/200 元`;
+
+      newGuest.userData.rightArm.rotation.x = -0.65;
+      setTimeout(() => {
+        if (newGuest && newGuest.userData && newGuest.userData.rightArm) {
+          newGuest.userData.rightArm.rotation.x = 0;
+        }
+      }, 350);
+
+      const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 12), new THREE.MeshLambertMaterial({ color: 0xf1c40f }));
+      coin.position.set(-4.3 + ((coinCount - 1) % 4 * 0.12), 1.42, -3.4 + (Math.floor((coinCount - 1) / 4) * 0.12));
+      scene.add(coin);
+      spawnedCoins.push(coin);
+
+      if (coinCount === 8) {
+        document.getElementById('dialogue-text').innerText = "客人慢吞吞數著...（身後排隊人潮已開始發出殺氣）總共 200 元，你要怎麼做？";
+        document.getElementById('options-grid').innerHTML = `
+          <button class="opt-pixel-btn" onclick="triggerFired('收到兩百個假硬幣')">A: 繼續等待她掏完200個一塊並收下</button>
+          <button class="opt-pixel-btn" onclick="triggerFired('你直接睡到下班')">B: 原地躺下睡覺</button>
+          <button class="opt-pixel-btn" onclick="stage3OptionC()">C: 把他錢包搶過來</button>
+          <button class="opt-pixel-btn" onclick="triggerFired('他用安卓')">D: 請他使用 Apple Pay</button>
+        `;
+      }
+    }, 1000);
+  }
+
+  function makeBillTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = "#27ae60";
+    ctx.fillRect(0, 0, 256, 128);
+    ctx.strokeStyle = "#1b4332";
+    ctx.lineWidth = 8;
+    ctx.strokeRect(6, 6, 244, 116);
+    ctx.strokeStyle = "#d8f3dc";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(14, 14, 228, 100);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 56px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("100", 128, 64);
+    return new THREE.CanvasTexture(canvas);
+  }
+
+  function stage3OptionC() {
+    if (currentCoinTimer) clearInterval(currentCoinTimer);
+    document.getElementById('options-grid').innerHTML = "";
+    document.getElementById('coin-counter').style.display = 'none';
+
+    playTone(1100, 'sine', 0.3);
+
+    if (currentActiveGuest) {
+      setCharacterFace(currentActiveGuest, "sad");
+    }
+
+    camera.position.set(-4.0, 1.85, -4.1);
+    camera.lookAt(-4.0, 1.25, -2.5);
+
+    const billTex = makeBillTexture();
+    const billMat = new THREE.MeshBasicMaterial({ map: billTex, side: THREE.DoubleSide });
+
+    const handLeft = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.65), new THREE.MeshLambertMaterial({ color: 0xdca878 }));
+    handLeft.position.set(-4.38, 1.42, -3.72);
+    handLeft.rotation.set(-0.35, 0.28, -0.15);
+
+    const handRight = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.65), new THREE.MeshLambertMaterial({ color: 0xdca878 }));
+    handRight.position.set(-3.62, 1.42, -3.72);
+    handRight.rotation.set(-0.35, -0.28, 0.15);
+
+    const walletMat = new THREE.MeshLambertMaterial({ color: 0x1f2421 });
+    const walletLeft = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.44), walletMat);
+    walletLeft.position.set(-4.16, 1.41, -3.52);
+    walletLeft.rotation.set(-0.35, 0.2, -0.1);
+
+    const walletRight = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.44), walletMat);
+    walletRight.position.set(-3.84, 1.41, -3.52);
+    walletRight.rotation.set(-0.35, -0.2, 0.1);
+
+    const bill1 = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.28), billMat);
+    bill1.position.set(-4.06, 1.49, -3.48);
+    bill1.rotation.set(-0.38, 0.05, 0.06);
+
+    const bill2 = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.28), billMat);
+    bill2.position.set(-3.94, 1.52, -3.46);
+    bill2.rotation.set(-0.38, -0.05, -0.06);
+
+    scene.add(handLeft);
+    scene.add(handRight);
+    scene.add(walletLeft);
+    scene.add(walletRight);
+    scene.add(bill1);
+    scene.add(bill2);
+
+    spawnedCoins.push(handLeft, handRight, walletLeft, walletRight, bill1, bill2);
+
+    document.getElementById('dialogue-text').innerText = "發現他明明有兩張100元 順利完成結帳";
+    playTone(1300, 'triangle', 0.4);
+
+    setTimeout(() => {
+      currentLevel = 4;
+      loadStage4();
+    }, 5000);
+  }
+
+  // ==================== 第四關 ====================
+  let brawler1 = null;
+  let brawler2 = null;
+  let isStage4Brawling = false;
+
+  function loadStage4() {
+    setFirstPersonCamera();
+    clearDynamicActors();
+    leftDoor.position.x = -2.8; rightDoor.position.x = 2.8;
+
+    const dLayer = document.getElementById('dialogue-layer');
+    dLayer.style.display = 'flex';
+    document.getElementById('options-grid').innerHTML = "";
+    document.getElementById('dialogue-text').innerText = "門口突然衝進兩個人，邊打邊闖進店裡扭打在一起！";
+
+    brawler1 = createCharacter("brawler");
+    brawler2 = createCharacter("player");
+    setCharacterFace(brawler1, "angry");
+    setCharacterFace(brawler2, "angry");
+
+    brawler1.position.set(-4.3, 0, 5.8);
+    brawler2.position.set(-3.7, 0, 5.8);
+    scene.add(brawler1);
+    scene.add(brawler2);
+    dynamicActors.push({ mesh: brawler1 }, { mesh: brawler2 });
+
+    let brawlTime = 0;
+    isStage4Brawling = true;
+
+    const brawlActor = {
+      update: () => {
+        if (isStage4Brawling) {
+          brawlTime += 0.15;
+          if (brawler1.position.z > -1.8) {
+            brawler1.position.z -= 0.045;
+            brawler2.position.z -= 0.045;
+          }
+          const offset = Math.sin(brawlTime * 4.2) * 0.45;
+          brawler1.position.x = -4.0 + offset;
+          brawler2.position.x = -4.0 - offset;
+          brawler1.rotation.y = (Math.PI / 2) + Math.sin(brawlTime * 3) * 0.4;
+          brawler2.rotation.y = (-Math.PI / 2) - Math.sin(brawlTime * 3) * 0.4;
+
+          brawler1.userData.leftArm.rotation.x = Math.sin(brawlTime * 6.5) * 1.6;
+          brawler1.userData.rightArm.rotation.z = Math.cos(brawlTime * 5.2) * 1.3;
+          brawler2.userData.leftArm.rotation.z = -Math.cos(brawlTime * 5.8) * 1.3;
+          brawler2.userData.rightArm.rotation.x = -Math.sin(brawlTime * 6.1) * 1.6;
+
+          brawler1.userData.leftLeg.rotation.x = Math.sin(brawlTime * 4) * 0.5;
+          brawler1.userData.rightLeg.rotation.x = -Math.sin(brawlTime * 4) * 0.5;
+          brawler2.userData.leftLeg.rotation.x = Math.sin(brawlTime * 4 + 0.5) * 0.5;
+          brawler2.userData.rightLeg.rotation.x = -Math.sin(brawlTime * 4 + 0.5) * 0.5;
+        }
+      }
+    };
+    dynamicActors.push(brawlActor);
+
+    stage4TimeoutId = setTimeout(() => {
+      if (currentLevel !== 4) return;
+      document.getElementById('dialogue-text').innerText = "兩人在櫃檯面前互毆雜物狂飛！場面極度混亂！你決定：";
+      document.getElementById('options-grid').innerHTML = `
+        <button class="opt-pixel-btn" onclick="triggerFired('不可以趕客人走')">A: 把他們趕出去</button>
+        <button class="opt-pixel-btn" id="stage4-opt-b" onclick="stage4OptionB()">B: 跟他們說要打去練舞室打</button>
+        <button class="opt-pixel-btn" onclick="triggerFired('上班不能吃東西')">C: 拿出爆米花邊看邊吃</button>
+        <button class="opt-pixel-btn" onclick="triggerFired('騎樓抽煙遇到環保局被開罰3600元')">D: 趁亂跑出去騎樓抽一根菸</button>
+      `;
+    }, 4500);
+  }
+
+  function stage4OptionB() {
+    document.getElementById('options-grid').innerHTML = "";
+    isStage4Brawling = false;
+
+    setCharacterFace(brawler1, "neutral");
+    setCharacterFace(brawler2, "neutral");
+    brawler1.userData.leftArm.rotation.set(0,0,0);
+    brawler1.userData.rightArm.rotation.set(0,0,0);
+    brawler2.userData.leftArm.rotation.set(0,0,0);
+    brawler2.userData.rightArm.rotation.set(0,0,0);
+    brawler1.userData.leftLeg.rotation.set(0,0,0);
+    brawler1.userData.rightLeg.rotation.set(0,0,0);
+    brawler2.userData.leftLeg.rotation.set(0,0,0);
+    brawler2.userData.rightLeg.rotation.set(0,0,0);
+
+    brawler1.position.set(-4.5, 0, -1.8);
+    brawler2.position.set(-3.5, 0, -1.8);
+    brawler1.rotation.y = Math.PI;
+    brawler2.rotation.y = Math.PI;
+
+    const dText = document.getElementById('dialogue-text');
+    const line = "要打去練舞室打！";
+    dText.innerText = "";
+    let lIdx = 0;
+    const lTimer = setInterval(() => {
+      dText.innerText += line[lIdx];
+      lIdx++;
+      playTone(700, 'sine', 0.03);
+      if (lIdx >= line.length) {
+        clearInterval(lTimer);
+
+        setTimeout(() => {
+          brawler1.rotation.y = Math.PI / 2;
+          brawler2.rotation.y = -Math.PI / 2;
+
+          setTimeout(() => {
+            brawler1.rotation.y = Math.PI;
+            brawler2.rotation.y = Math.PI;
+
+            setTimeout(() => {
+              const bubble1 = makeTextSprite("好", "#fff", true, 26);
+              bubble1.position.set(brawler1.position.x, 3.1, brawler1.position.z);
+              const bubble2 = makeTextSprite("好", "#fff", true, 26);
+              bubble2.position.set(brawler2.position.x, 3.1, brawler2.position.z);
+              scene.add(bubble1); scene.add(bubble2);
+              playTone(880, 'triangle', 0.3);
+
+              setTimeout(() => {
+                scene.remove(bubble1); scene.remove(bubble2);
+
+                let exitStep = 1;
+                let exitTime = 0;
+                const exitTimer = setInterval(() => {
+                  exitTime += 0.2;
+                  brawler1.userData.leftLeg.rotation.x = Math.sin(exitTime * 2) * 0.6;
+                  brawler1.userData.rightLeg.rotation.x = -Math.sin(exitTime * 2) * 0.6;
+                  brawler2.userData.leftLeg.rotation.x = Math.sin(exitTime * 2 + 0.5) * 0.6;
+                  brawler2.userData.rightLeg.rotation.x = -Math.sin(exitTime * 2 + 0.5) * 0.6;
+
+                  if (exitStep === 1) {
+                    brawler1.position.x += 0.08;
+                    brawler2.position.x += 0.08;
+                    brawler1.rotation.y = Math.PI / 2;
+                    brawler2.rotation.y = Math.PI / 2;
+                    if (brawler1.position.x >= -0.6) {
+                      brawler1.position.x = -0.6;
+                      brawler2.position.x = 0.6;
+                      brawler1.rotation.y = 0;
+                      brawler2.rotation.y = 0;
+                      exitStep = 2;
+                    }
+                  } else if (exitStep === 2) {
+                    brawler1.position.z += 0.12;
+                    brawler2.position.z += 0.12;
+                    if (brawler1.position.z >= 7.8) {
+                      clearInterval(exitTimer);
+                      scene.remove(brawler1);
+                      scene.remove(brawler2);
+                      currentLevel = 5;
+                      loadStage5();
+                    }
+                  }
+                }, 40);
+              }, 1200);
+            }, 500);
+          }, 800);
+        }, 600);
+      }
+    }, 60);
+  }
+
+  // ==================== 第五關 ====================
+  function loadStage5() {
+    setFirstPersonCamera();
+    clearDynamicActors();
+    bossMesh.position.set(-4.0, 0, -1.8);
+    bossMesh.rotation.y = Math.PI;
+    setCharacterFace(bossMesh, "neutral");
+
+    document.getElementById('clock-bar').style.display = 'block';
+    updateClockDisplay(9, 59, "PM");
+    document.getElementById('dialogue-layer').style.display = 'flex';
+    document.getElementById('dialogue-text').innerText = "10:00 PM 下班，現在已經 9:59 PM！老闆站在吧台前滔滔不絕：「想當年我在東引當兵的時候啊...」";
+    document.getElementById('options-grid').innerHTML = `
+      <button class="opt-pixel-btn" onclick="triggerFired('老闆：我講話很無聊嗎？')">A: 開始收拾個人物品</button>
+      <button class="opt-pixel-btn" onclick="stage5UrineEscape()">B: 使用尿遁從後門逃走</button>
+      <button class="opt-pixel-btn" onclick="triggerFired('拿成老闆的手機')">C: 拿起手機假裝有電話要接</button>
+      <button class="opt-pixel-btn" onclick="stage5ThunderReply()">D: 給出一個雷霆回覆</button>
+    `;
+  }
+
+  function stage5UrineEscape() {
+    document.getElementById('dialogue-layer').style.display = 'none';
+
+    camera.position.set(-6.5, 2.2, -5.5);
+    camera.lookAt(-6.5, 2.0, -9.8);
+    bossMesh.position.set(-6.5, 0, -8.2);
+    bossMesh.rotation.y = 0;
+
+    let fastHour = 10, fastMin = 0;
+    let ticks = 0;
+    const fastClock = setInterval(() => {
+      ticks++;
+      fastMin += 25;
+      if (fastMin >= 60) { fastMin = 0; fastHour++; }
+      playTone(400 + Math.random() * 300, 'square', 0.04);
+      updateClockDisplay(fastHour > 12 ? fastHour - 12 : fastHour, fastMin, fastHour >= 12 ? "PM" : "AM");
+
+      if (ticks >= 35) {
+        clearInterval(fastClock);
+        updateClockDisplay(8, 0, "AM");
+        setTimeout(() => { triggerFired("老闆在廁所門口等你一個晚上"); }, 500);
+      }
+    }, 140);
+  }
+
+  function stage5ThunderReply() {
+    document.getElementById('options-grid').innerHTML = "";
+    
+    // 三篇指定雷霆回覆全文
+    const replies = [
+      "我覺得你說的對 但是我要補充一下 首先袋鼠的祖先是一條長頸鹿 而火星表面並沒有任何關於鴨嘴獸生活的痕跡 所以我並不認可湖南人不能吃辣的問題 其次亞特蘭蒂斯是在公元前十年 在賽博坦星球被來自m78星雲來的假面騎士給毀滅的 所以才有了後面著名的通古斯大爆炸 但是答案是紫色的 因為外星人不戴帽子",
+      "從某種角度來說，你說的有一點對，可是從另一個角度看，你說得不對。也不能說是完全不對，只能說離完全對之間還有一點不對。如果忽略這點不對，哪你說的當然是對的，可是以一個更嚴謹的態度去審視你說的對不對，那麼你說的又不是對的了。其實回頭一想，你說的對之處在靜止的世界中有可能是對的，你說的不對之處以形而上的觀點來看有可能是錯的。但是以發展的眼光看，你說得對之處在運動的時空里有可能是不對的，你說的不對之處以辯證的觀點看有可能是對的。在此時此刻你說的有可能對也有可能不對，在往後未來你說的有可能不對也有可能對。",
+      "不要老是和别人比利弊\n比弊时，我们会感到自卑\n比利时，是一个欧洲国家\n当利大于弊时\n多利，是一只克隆羊\n当弊大于利时\n多弊，is free\n利弊相比，必有一多\n可利呢？蹦蹦炸弹\n可弊呢？坠机了"
+    ];
+
+    const chosenReply = replies[Math.floor(Math.random() * replies.length)];
+    const dText = document.getElementById('dialogue-text');
+    dText.innerText = "";
+
+    // 嚴格於 5000 毫秒（5 秒）內均勻打完整篇文章
+    let idx = 0;
+    const intervalTime = Math.max(12, Math.floor(5000 / chosenReply.length));
+    const typeTimer = setInterval(() => {
+      dText.innerText += chosenReply[idx];
+      idx++;
+      // 打字機微弱音效並自動向下滾動
+      if (idx % 2 === 0) playTone(880 + Math.random() * 120, 'triangle', 0.02);
+      dText.scrollTop = dText.scrollHeight;
+
+      if (idx >= chosenReply.length) {
+        clearInterval(typeTimer);
+
+        // 打完後剛好間隔「整整兩秒（2000ms）」老闆才跳出回應
+        setTimeout(() => {
+          const bossLine = "⋯我想你應該累了 今天先這樣吧。";
+          const bubble = makeTextSprite(bossLine, "#ffffff", true, 21);
+          bubble.position.set(bossMesh.position.x, 3.1, bossMesh.position.z);
+          scene.add(bubble);
+          playTone(440, 'triangle', 0.3);
+
+          setTimeout(() => {
+            document.getElementById('dialogue-layer').style.display = 'none';
+            document.getElementById('clock-bar').style.display = 'none';
+            document.getElementById('victory-screen').style.display = 'flex';
+          }, 3200);
+        }, 2000);
+      }
+    }, intervalTime);
+  }
+
+  function startGame() {
+    initAudioSafe();
+    playTone(523, 'triangle', 0.2);
+    document.getElementById('start-screen').style.display = 'none';
+    currentLevel = 1;
+    initLevel1();
+  }
+</script>
+</body>
+</html>
